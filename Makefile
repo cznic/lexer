@@ -4,7 +4,7 @@
 
 include $(GOROOT)/src/Make.inc
 
-TARG=lexer
+TARG=github.com/cznic/lexer
 
 GOFILES=\
     lexer.go\
