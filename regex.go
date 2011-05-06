@@ -1,0 +1,264 @@
+// Copyright (c) 2011 CZ.NIC z.s.p.o. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+// blame: 
+//		jnml, labs.nic.cz
+//		Miek Gieben, SIDN, miek@miek.nl
+
+
+package lexer
+
+
+import (
+	"fmt"
+	"os"
+	"strings"
+	"unicode"
+)
+
+
+func qs(s string) string {
+	q := fmt.Sprintf("%q", s)
+	return q[1 : len(q)-1]
+}
+
+// ParseRE compiles a regular expression re into Nfa, returns the re component starting
+// and accepting states or an Error if any.
+func (n *Nfa) ParseRE(name, re string) (in, out *NfaState, err os.Error) {
+	s := NewScannerSource(name, strings.NewReader(re))
+
+	defer func() {
+		if e := recover(); e != nil {
+			in, out = nil, nil
+			pos := s.CurrentRune().Position
+			err = fmt.Errorf(`%s - "%s^%s" - %s`, pos, qs(re[:pos.Offset]), qs(re[pos.Offset:]), e.(os.Error))
+		}
+	}()
+
+	in, out = n.parseExpr(s, nil, nil, 0)
+	if s.Position().Offset < len(re) {
+		panic(fmt.Errorf("syntax error"))
+	}
+
+	return
+}
+
+
+func (n *Nfa) parseExpr(s *ScannerSource, in0, out0 *NfaState, nest int) (in, out *NfaState) {
+	in, out = in0, out0
+	for s.Current() != 0 {
+		a, b := n.parseAlt(s, nest)
+		if in == nil {
+			in, out = a, b
+		} else {
+			in.AddNonConsuming(&EpsilonEdge{0, a})
+			b.AddNonConsuming(&EpsilonEdge{0, out})
+		}
+		if !s.Accept('|') {
+			break
+		}
+
+		if s.Current() == 0 {
+			out = nil
+			break
+		}
+	}
+	if out != nil {
+		return
+	}
+
+	panic(fmt.Errorf(`expected "alernative"`)) //TODO all parameterless fmt.Errof -> os.NewError
+}
+
+
+func (n *Nfa) parseAlt(s *ScannerSource, nest int) (in, out *NfaState) {
+	var a, b *NfaState
+	for s.Current() != 0 {
+		if a, b = n.parseTerm(s, out, nest); a == nil {
+			break
+		}
+
+		if out = b; in == nil {
+			in = a
+		}
+	}
+	if out != nil {
+		return
+	}
+
+	panic(fmt.Errorf(`expected "term"`))
+}
+
+
+func (n *Nfa) parseTerm(s *ScannerSource, in0 *NfaState, nest int) (in, out *NfaState) {
+	if in = in0; in == nil {
+		in = n.NewState()
+	}
+	switch rune := s.Current(); rune {
+	default:
+		s.Move()
+		out = in.AddConsuming(NewRuneEdge(n.NewState(), rune)).Target()
+	case '+', '*', '?':
+		panic(fmt.Errorf("unexpected metachar %q", string(rune)))
+	case '\\':
+		switch rune = s.mustParseChar("ApPz"); rune {
+		default:
+			out = in.AddConsuming(NewRuneEdge(n.NewState(), rune)).Target()
+		case 'A':
+			out = in.AddNonConsuming(NewAssertEdge(n.NewState(), TextStart)).Target()
+		case 'z':
+			out = in.AddNonConsuming(NewAssertEdge(n.NewState(), TextEnd)).Target()
+		case 'p', 'P':
+			name, ok, ranges := "", false, []unicode.Range{}
+			s.expect('{')
+			for !s.Accept('}') {
+				name += string(s.mustGetChar())
+			}
+			if ranges, ok = unicode.Categories[name]; !ok {
+				if ranges, ok = unicode.Scripts[name]; !ok {
+					panic(fmt.Errorf("unknown Unicode category name %q", name))
+				}
+			}
+			out = in.AddConsuming(NewRangesEdge(n.NewState(), rune == 'P', ranges)).Target()
+		}
+	case 0, '|':
+		return nil, nil
+	case ')':
+		if nest == 0 {
+			panic(fmt.Errorf(`unexpected ")"`))
+		}
+		return nil, nil
+	case '(':
+		s.Move()
+		in, out = n.parseExpr(s, in, n.NewState(), nest+1)
+		s.expect(')')
+	case '.': // All but '\U+0000', '\n'
+		s.Move()
+		out = in.AddConsuming(NewRangesEdge(n.NewState(), true, []unicode.Range{{'\n', '\n', 1}})).Target()
+	case '^':
+		s.Move()
+		out = in.AddNonConsuming(NewAssertEdge(n.NewState(), LineStart)).Target()
+	case '$':
+		s.Move()
+		out = in.AddNonConsuming(NewAssertEdge(n.NewState(), LineEnd)).Target()
+	case '[':
+		s.Move()
+		ranges := []unicode.Range{}
+		invert := s.Accept('^')
+		for {
+			a := s.mustParseChar("")
+			if s.Accept('-') {
+				b := s.mustParseChar("")
+				if b < a {
+					panic(fmt.Errorf(`invalid range bounds ordering in bracket expression "%s-%s"`, string(a), string(b)))
+				}
+				ranges = append(ranges, unicode.Range{a, b, 1})
+			} else {
+				ranges = append(ranges, unicode.Range{a, a, 1})
+			}
+			if s.Accept(']') {
+				break
+			}
+		}
+		(*rangeSlice)(&ranges).normalize()
+		out = in.AddConsuming(NewRangesEdge(n.NewState(), invert, ranges)).Target()
+	}
+
+	// postfix ops
+	switch s.Current() {
+	case '+':
+		s.Move()
+		_, out = n.OneOrMore(in, out)
+	case '*':
+		s.Move()
+		_, out = n.ZeroOrMore(in, out)
+	case '?':
+		s.Move()
+		_, out = n.ZeroOrOne(in, out)
+	}
+
+	return
+}
+
+
+func (s *ScannerSource) mustGetChar() int {
+	if c := s.Current(); c != 0 {
+		s.Move()
+		return c
+	}
+
+	panic(fmt.Errorf("unexpected end of regexp"))
+}
+
+
+func (s *ScannerSource) mustParseChar(more string) (rune int) {
+	allowZero := s.Current() == '\\'
+	if rune = s.parseChar(more); rune == 0 && !allowZero {
+		panic(fmt.Errorf("unexpected regexp end"))
+	}
+
+	s.Move()
+	return
+}
+
+
+func (s *ScannerSource) parseChar(more string) (rune int) {
+	if rune = s.Current(); rune != '\\' {
+		return
+	}
+
+	s.Move()
+	switch rune = s.Current(); rune {
+	default:
+		if strings.IndexAny(string(rune), more) < 0 {
+			panic(fmt.Errorf(`unknown escape sequence "\%s"`, string(rune)))
+		}
+
+		return
+	case '\\', '.', '+', '*', '?', '(', ')', '|', '[', ']', '^', '$':
+		return
+	case 'a':
+		return '\a'
+	case 'b':
+		return '\b'
+	case 'f':
+		return '\f'
+	case 'n':
+		return '\n'
+	case 'r':
+		return '\r'
+	case 't':
+		return '\t'
+	case 'v':
+		return '\v'
+	case 'x':
+		s.Move()
+		rune = s.hex() << 4
+		s.Move()
+		return rune | s.hex()
+	}
+
+	panic("unreachable")
+}
+
+
+func (s *ScannerSource) hex() (v int) {
+	switch v = s.Current(); {
+	case v >= '0' && v <= '9':
+		return v - '0'
+	case v >= 'a' && v <= 'f':
+		return v - 'a' + 10
+	case 'v' >= 'A' && v <= 'F':
+		return v - 'A' + 10
+	}
+
+	panic(os.NewError("expected hex digit"))
+}
+
+
+func (s *ScannerSource) expect(rune int) {
+	if !s.Accept(rune) {
+		panic(fmt.Errorf("expected %q, got %q", string(rune), string(s.Current())))
+	}
+}
