@@ -13,6 +13,7 @@ package lexer
 import (
 	"bufio"
 	"bytes"
+	"flag"
 	"fmt"
 	"go/token"
 	"io/ioutil"
@@ -21,6 +22,69 @@ import (
 	"runtime"
 	"testing"
 )
+
+
+var (
+	devFlag = flag.Bool("dev", false, "enable dev tests/utils/helpers")
+	reFlag  = flag.String("re", "re", "regexp for some of the dev tests")
+)
+
+
+func init() {
+	flag.Parse()
+}
+
+
+func TestScan(t *testing.T) {
+	lexer, err := CompileLexer(
+		nil,
+		map[string]int{
+
+			`/[ \n]+/`: -1,
+			`A`:        11,
+		},
+		"",
+		"test",
+	)
+	if err != nil {
+		t.Fatal(10, err)
+	}
+
+	t.Log("lexer\n", lexer)
+
+	s := lexer.Scanner("testsrc", bytes.NewBufferString(
+		`
+ A 
+ B 
+ `,
+	))
+	x, ok := s.Scan()
+	if !ok {
+		t.Fatal(20, x, s.TokenStart(), "-", s.Position(), s.Token())
+	}
+
+	if x != 11 {
+		t.Fatal(30, x, 11, s.TokenStart(), "-", s.Position(), s.Token())
+	}
+
+	x, ok = s.Scan()
+	if ok {
+		t.Fatal(40, x, s.TokenStart(), "-", s.Position(), s.Token())
+	}
+
+	if x != 'B' {
+		t.Fatal(50, x, 'B')
+	}
+
+	x, ok = s.Scan()
+	if ok {
+		t.Fatal(60)
+	}
+
+	if x != 0 {
+		t.Fatal(70, x, 0)
+	}
+}
 
 
 var lex = MustCompileLexer(
@@ -110,12 +174,14 @@ var lex = MustCompileLexer(
 		`/type/`:        int(token.TYPE),
 		`/var/`:         int(token.VAR),
 	},
+
+
 	`
 identifier    = letter { letter | unicode_digit } .
 letter        = unicode_letter | "_" .
-//decimal_digit = "0" ... "9" .
-octal_digit   = "0" ... "7" .
-//hex_digit     = "0" ... "9" | "A" ... "F" | "a" ... "f" .
+//decimal_digit = "0" … "9" .
+octal_digit   = "0" … "7" .
+//hex_digit     = "0" … "9" | "A" … "F" | "a" … "f" .
 hex_digit     = "/[0-9a-fA-F]/" .
 
 unicode_char         = "/.|\n/" /* an arbitrary Unicode code point */ .
@@ -123,7 +189,7 @@ unicode_digit        = "/\\p{Nd}/" /* a Unicode code point classified as "Digit"
 unicode_letter       = "/\\p{letter}/" /* a Unicode code point classified as "Letter" */ .
 
 int_lit     = decimal_lit | octal_lit | hex_lit .
-//decimal_lit = ( "1" ... "9" ) { decimal_digit } .
+//decimal_lit = ( "1" … "9" ) { decimal_digit } .
 decimal_lit =  "/[1-9][0-9]*/" .
 //octal_lit   = "0" { octal_digit } .
 octal_lit   = "/0[0-7]*/" .
@@ -165,10 +231,12 @@ string_escaped_char      = "\\" ( "\"" | other_escaped_char ) .
 
 
 func BenchmarkNFA(b *testing.B) {
+	var v visitor
 	for i := 0; i < b.N; i++ {
-		v := visitor{s: lex.Scanner("test-go-scanner", nil)}
+		v = visitor{s: lex.Scanner("test-go-scanner", nil)}
 		filepath.Walk(runtime.GOROOT()+"/src", &v, nil)
 	}
+	b.SetBytes(int64(b.N) * v.size)
 
 }
 
@@ -193,6 +261,10 @@ func TestNFA(t *testing.T) {
 		}
 
 		tok++
+	}
+
+	if tok == 0 {
+		t.Fatal(10, "no tokens found")
 	}
 
 	t.Log(tok, "tokens in", fn)
@@ -244,4 +316,19 @@ func (v *visitor) VisitFile(path string, f *os.FileInfo) {
 
 	v.count++
 	v.size += f.Size
+}
+
+
+func TestDevParse(t *testing.T) {
+	if !*devFlag {
+		return
+	}
+
+	var nfa Nfa
+	_, _, err := nfa.ParseRE("test", *reFlag)
+	if err != nil {
+		t.Fatal(10, err)
+	}
+
+	t.Log(nfa)
 }

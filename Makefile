@@ -7,12 +7,13 @@ include $(GOROOT)/src/Make.inc
 TARG=github.com/cznic/lexer
 
 GOFILES=\
-    lexer.go\
+	is.go\
+	lexer.go\
 	nfa.go\
 	ranges.go\
 	regex.go\
-	source.go\
 	scanner.go\
+	source.go\
 	vm.go\
 
 include $(GOROOT)/src/Make.pkg

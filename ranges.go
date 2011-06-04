@@ -16,7 +16,7 @@ import (
 )
 
 
-type rangeSlice []unicode.Range
+type rangeSlice []unicode.Range32
 
 
 // sort.Interface

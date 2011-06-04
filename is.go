@@ -1,0 +1,79 @@
+// Copyright 2009 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE-GO file.
+
+// Copyright (c) 2011 CZ.NIC z.s.p.o. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+// blame: jnml, labs.nic.cz
+
+// This is a modified version of the code originally found in src/pkg/unicode/letter.go
+
+
+package lexer
+
+
+import (
+	"unicode"
+)
+
+
+// is16 uses binary search to test whether rune is in the specified slice of 16-bit ranges.
+func is16(ranges []unicode.Range16, rune uint16) bool {
+	// binary search over ranges
+	lo := 0
+	hi := len(ranges)
+	for lo < hi {
+		m := lo + (hi-lo)/2
+		r := ranges[m]
+		if r.Lo <= rune && rune <= r.Hi {
+			return (rune-r.Lo)%r.Stride == 0
+		}
+
+		if rune < r.Lo {
+			hi = m
+		} else {
+			lo = m + 1
+		}
+	}
+	return false
+}
+
+
+// is32 uses binary search to test whether rune is in the specified slice of 32-bit ranges.
+func is32(ranges []unicode.Range32, rune uint32) bool {
+	// binary search over ranges
+	lo := 0
+	hi := len(ranges)
+	for lo < hi {
+		m := lo + (hi-lo)/2
+		r := ranges[m]
+		if r.Lo <= rune && rune <= r.Hi {
+			return (rune-r.Lo)%r.Stride == 0
+		}
+
+		if rune < r.Lo {
+			hi = m
+		} else {
+			lo = m + 1
+		}
+	}
+	return false
+}
+
+
+// unicodeIs tests whether rune is in the specified table of ranges.
+func unicodeIs(rangeTab *unicode.RangeTable, rune int) bool {
+	r16 := rangeTab.R16
+	if len(r16) > 0 && rune <= int(r16[len(r16)-1].Hi) && is16(r16, uint16(rune)) {
+		return true
+	}
+
+	r32 := rangeTab.R32
+	if len(r32) > 0 && rune >= int(r32[0].Lo) {
+		return is32(r32, uint32(rune))
+	}
+
+	return false
+}

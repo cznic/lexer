@@ -320,13 +320,13 @@ func (e *RuneEdge) String() string {
 // RangesEdge is a consuming egde which accepts rune ranges except \U+0000.
 type RangesEdge struct {
 	EpsilonEdge
-	Invert bool            // Accepts all but Ranges as in [^exp]
-	Ranges []unicode.Range // Accepted rune set
+	Invert bool                // Accepts all but Ranges as in [^exp]
+	Ranges *unicode.RangeTable // Accepted rune set
 }
 
 
 // NewRangesEdge returns a new RangesEdge pointing to target which accepts ranges.
-func NewRangesEdge(target *NfaState, invert bool, ranges []unicode.Range) *RangesEdge {
+func NewRangesEdge(target *NfaState, invert bool, ranges *unicode.RangeTable) *RangesEdge {
 	return &RangesEdge{EpsilonEdge{0, target}, invert, ranges}
 }
 
@@ -336,20 +336,31 @@ func (e *RangesEdge) Accepts(s *ScannerSource) bool {
 	rune := s.Current()
 	if rune != 0 {
 		if e.Invert {
-			return !unicode.Is(e.Ranges, rune)
+			return !unicodeIs(e.Ranges, rune)
 		}
 
-		return unicode.Is(e.Ranges, rune)
+		return unicodeIs(e.Ranges, rune)
 	}
 
 	return false
 }
 
+
 func (e *RangesEdge) String() (s string) {
 	if e.Invert {
 		s = "!"
 	}
-	for _, r := range e.Ranges {
+	for _, r := range e.Ranges.R16 {
+		switch {
+		default:
+			s += fmt.Sprintf("%q-%q(%d), ", string(r.Lo), string(r.Hi), r.Stride)
+		case r.Lo == r.Hi:
+			s += fmt.Sprintf("%q, ", string(r.Lo))
+		case r.Stride == 1:
+			s += fmt.Sprintf("%q...%q, ", string(r.Lo), string(r.Hi))
+		}
+	}
+	for _, r := range e.Ranges.R32 {
 		switch {
 		default:
 			s += fmt.Sprintf("%q-%q(%d), ", string(r.Lo), string(r.Hi), r.Stride)

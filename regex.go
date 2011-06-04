@@ -110,11 +110,12 @@ func (n *Nfa) parseTerm(s *ScannerSource, in0 *NfaState, nest int) (in, out *Nfa
 		case 'z':
 			out = in.AddNonConsuming(NewAssertEdge(n.NewState(), TextEnd)).Target()
 		case 'p', 'P':
-			name, ok, ranges := "", false, []unicode.Range{}
+			name, ok := "", false
 			s.expect('{')
 			for !s.Accept('}') {
 				name += string(s.mustGetChar())
 			}
+			var ranges *unicode.RangeTable
 			if ranges, ok = unicode.Categories[name]; !ok {
 				if ranges, ok = unicode.Scripts[name]; !ok {
 					panic(fmt.Errorf("unknown Unicode category name %q", name))
@@ -135,7 +136,7 @@ func (n *Nfa) parseTerm(s *ScannerSource, in0 *NfaState, nest int) (in, out *Nfa
 		s.expect(')')
 	case '.': // All but '\U+0000', '\n'
 		s.Move()
-		out = in.AddConsuming(NewRangesEdge(n.NewState(), true, []unicode.Range{{'\n', '\n', 1}})).Target()
+		out = in.AddConsuming(NewRangesEdge(n.NewState(), true, &unicode.RangeTable{R16: []unicode.Range16{{'\n', '\n', 1}}})).Target()
 	case '^':
 		s.Move()
 		out = in.AddNonConsuming(NewAssertEdge(n.NewState(), LineStart)).Target()
@@ -144,7 +145,7 @@ func (n *Nfa) parseTerm(s *ScannerSource, in0 *NfaState, nest int) (in, out *Nfa
 		out = in.AddNonConsuming(NewAssertEdge(n.NewState(), LineEnd)).Target()
 	case '[':
 		s.Move()
-		ranges := []unicode.Range{}
+		ranges := &unicode.RangeTable{}
 		invert := s.Accept('^')
 		for {
 			a := s.mustParseChar("")
@@ -153,15 +154,15 @@ func (n *Nfa) parseTerm(s *ScannerSource, in0 *NfaState, nest int) (in, out *Nfa
 				if b < a {
 					panic(fmt.Errorf(`invalid range bounds ordering in bracket expression "%s-%s"`, string(a), string(b)))
 				}
-				ranges = append(ranges, unicode.Range{a, b, 1})
+				ranges.R32 = append(ranges.R32, unicode.Range32{uint32(a), uint32(b), 1})
 			} else {
-				ranges = append(ranges, unicode.Range{a, a, 1})
+				ranges.R32 = append(ranges.R32, unicode.Range32{uint32(a), uint32(a), 1})
 			}
 			if s.Accept(']') {
 				break
 			}
 		}
-		(*rangeSlice)(&ranges).normalize()
+		(*rangeSlice)(&ranges.R32).normalize()
 		out = in.AddConsuming(NewRangesEdge(n.NewState(), invert, ranges)).Target()
 	}
 
