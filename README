@@ -1,6 +1,8 @@
 This is a goinstall-able mirror of modified code already published at:
 http://git.nic.cz/redmine/projects/golexer/repository
 
+Online godoc documentation for this package available at:
+http://gopkgdoc.appspot.com/pkg/github.com/cznic/lexer
 
 Syntax supported by ParseRE (ATM a very basic subset of RE2, docs bellow are a mod of: http://code.google.com/p/re2/wiki/Syntax, original docs license unclear)
 
