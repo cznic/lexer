@@ -80,7 +80,10 @@ func CompileLexer(starts [][]int, tokdefs map[string]int, grammar, start string)
 			continue
 		}
 
-		prodnames += "| " + tokdef
+		if prodnames != "" {
+			prodnames += " | "
+		}
+		prodnames += tokdef
 		res[id] = ""
 	}
 

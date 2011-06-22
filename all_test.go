@@ -186,7 +186,7 @@ hex_digit     = "/[0-9a-fA-F]/" .
 
 unicode_char         = "/.|\n/" /* an arbitrary Unicode code point */ .
 unicode_digit        = "/\\p{Nd}/" /* a Unicode code point classified as "Digit" */ .
-unicode_letter       = "/\\p{letter}/" /* a Unicode code point classified as "Letter" */ .
+unicode_letter       = "/\\p{L}/" /* a Unicode code point classified as "Letter" */ .
 
 int_lit     = decimal_lit | octal_lit | hex_lit .
 //decimal_lit = ( "1" … "9" ) { decimal_digit } .
