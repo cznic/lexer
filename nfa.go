@@ -9,12 +9,10 @@
 
 package lexer
 
-
 import (
 	"fmt"
 	"unicode"
 )
-
 
 // Edger interface defines the method set for all NFA edge types.
 type Edger interface {
@@ -25,9 +23,7 @@ type Edger interface {
 	SetTarget(s *NfaState) *NfaState // SetTarget() assigns s as a new target and returns the original Target
 }
 
-
 type EdgeAssert int
-
 
 const (
 	TextStart EdgeAssert = iota
@@ -36,19 +32,16 @@ const (
 	LineEnd
 )
 
-
 // AssertEdge is a non consuming edge which asserts line/text start/end.
 type AssertEdge struct {
 	EpsilonEdge
 	Asserts EdgeAssert
 }
 
-
 // NewAssertEdge returns a new AssertdEdge pointing to target, asserting asserts.
 func NewAssertEdge(target *NfaState, asserts EdgeAssert) *AssertEdge {
 	return &AssertEdge{EpsilonEdge{0, target}, asserts}
 }
-
 
 // Accepts is the AssertEdge implementation of the Edger interface.
 func (e *AssertEdge) Accepts(s *ScannerSource) bool {
@@ -69,7 +62,6 @@ func (e *AssertEdge) Accepts(s *ScannerSource) bool {
 	panic("unreachable")
 }
 
-
 func (e *AssertEdge) String() (s string) {
 	switch e.Asserts {
 	default:
@@ -86,25 +78,21 @@ func (e *AssertEdge) String() (s string) {
 	return s + e.EpsilonEdge.String()
 }
 
-
 // EpsilonEdge is a non consuming, always accepting NFA edge.
 type EpsilonEdge struct {
 	Prio int
 	Targ *NfaState
 }
 
-
 // Accepts is the EpsilonEdge implementation of the Edger interface.
 func (e *EpsilonEdge) Accepts(s *ScannerSource) bool {
 	return true
 }
 
-
 // Priority is the EpsilonEdge implementation of the Edger interface.
 func (e *EpsilonEdge) Priority() int {
 	return e.Prio
 }
-
 
 func (e *EpsilonEdge) String() (s string) {
 	if e.Prio != 0 {
@@ -112,7 +100,6 @@ func (e *EpsilonEdge) String() (s string) {
 	}
 	return fmt.Sprintf("%s--> %d", s, e.Target().Index)
 }
-
 
 func (e *EpsilonEdge) SetTarget(s *NfaState) (old *NfaState) {
 	old, e.Targ = e.Targ, s
@@ -124,14 +111,12 @@ func (e *EpsilonEdge) Target() *NfaState {
 	return e.Targ
 }
 
-
 // NfaState desribes a single NFA state.
 type NfaState struct {
 	Index        uint    // Index of this state in it's owning NFA.
 	Consuming    []Edger // The NFA state non consuming edge set.
 	NonConsuming []Edger // The NFA state consuming edge set.
 }
-
 
 // AddConsuming adds an Edger to the state's consuming edge set and returns the Edger.
 // No checks are made if the edge really is a consuming egde.
@@ -140,14 +125,12 @@ func (n *NfaState) AddConsuming(edge Edger) Edger {
 	return edge
 }
 
-
 // AddNonConsuming adds an Edger to the state's non consuming edge set and returns the Edger.
 // No checks are made if the edge really is a non consuming edge.
 func (n *NfaState) AddNonConsuming(edge Edger) Edger {
 	n.NonConsuming = append(n.NonConsuming, edge)
 	return edge
 }
-
 
 func (n *NfaState) String() (s string) {
 	s += fmt.Sprintf("[%d]", n.Index)
@@ -159,7 +142,6 @@ func (n *NfaState) String() (s string) {
 	}
 	return
 }
-
 
 func (n *NfaState) isRedundant() (retarget *NfaState, ok bool) { //TODO func (rcvr) (**NfaState) bool ?
 	if len(n.Consuming) != 0 || len(n.NonConsuming) == 0 || len(n.NonConsuming) != 1 {
@@ -186,10 +168,8 @@ func (n *NfaState) retarget() (target *NfaState, ok bool) {
 	return target, true
 }
 
-
 // Nfa is a set of NfaStates.
 type Nfa []*NfaState
-
 
 // AddState adds and existing NfaState to Nfa. One NfaState should not appear in more than one Nfa
 // because the NfaState Index property should always reflect it's position in the owner Nfa.
@@ -199,12 +179,10 @@ func (n *Nfa) AddState(s *NfaState) *NfaState {
 	return s
 }
 
-
 // NewState returns a newly created NfaState and adds it to the Nfa.
 func (n *Nfa) NewState() (s *NfaState) {
 	return n.AddState(&NfaState{Index: uint(len(*n))})
 }
-
 
 // Reduce attempts to decrease the number of states in a Nfa.
 func (n *Nfa) reduce() {
@@ -240,14 +218,12 @@ func (n *Nfa) reduce() {
 	*n = nfa[0:w]
 }
 
-
 func (n Nfa) String() (s string) {
 	for _, st := range n {
 		s += fmt.Sprintf("\n%s", st.String())
 	}
 	return
 }
-
 
 // OneOrMore converts a Nfa component C to C+
 func (n *Nfa) OneOrMore(in, out *NfaState) (from, to *NfaState) {
@@ -261,7 +237,6 @@ func (n *Nfa) OneOrMore(in, out *NfaState) (from, to *NfaState) {
 	out.AddNonConsuming(&EpsilonEdge{0, s}) // loop back
 	return from, out.AddNonConsuming(&EpsilonEdge{0, n.NewState()}).Target()
 }
-
 
 // ZeroOrMore converts a Nfa component C to C*
 func (n *Nfa) ZeroOrMore(in, out *NfaState) (from, to *NfaState) {
@@ -278,7 +253,6 @@ func (n *Nfa) ZeroOrMore(in, out *NfaState) (from, to *NfaState) {
 	return from, out.AddNonConsuming(&EpsilonEdge{0, n.NewState()}).Target()
 }
 
-
 // ZeroOrOne converts a Nfa component C to C?
 func (n *Nfa) ZeroOrOne(in, out *NfaState) (from, to *NfaState) {
 	//                                 /¯¯¯¯¯↘
@@ -292,30 +266,25 @@ func (n *Nfa) ZeroOrOne(in, out *NfaState) (from, to *NfaState) {
 	return from, out.AddNonConsuming(&EpsilonEdge{0, n.NewState()}).Target()
 }
 
-
 // RuneEdge is a consuming egde which accepts a single rune.
 type RuneEdge struct {
 	EpsilonEdge
 	Rune int
 }
 
-
 // NewRuneEdge returns a new RuneEdge pointing to target which accepts rune.
 func NewRuneEdge(target *NfaState, rune int) *RuneEdge {
 	return &RuneEdge{EpsilonEdge{0, target}, rune}
 }
-
 
 // Accepts is the RuneEdge implementation of the Edger interface.
 func (e *RuneEdge) Accepts(s *ScannerSource) bool {
 	return e.Rune == s.Current()
 }
 
-
 func (e *RuneEdge) String() string {
 	return fmt.Sprintf("%q%s", string(e.Rune), e.EpsilonEdge.String())
 }
-
 
 // RangesEdge is a consuming egde which accepts rune ranges except \U+0000.
 type RangesEdge struct {
@@ -324,12 +293,10 @@ type RangesEdge struct {
 	Ranges *unicode.RangeTable // Accepted rune set
 }
 
-
 // NewRangesEdge returns a new RangesEdge pointing to target which accepts ranges.
 func NewRangesEdge(target *NfaState, invert bool, ranges *unicode.RangeTable) *RangesEdge {
 	return &RangesEdge{EpsilonEdge{0, target}, invert, ranges}
 }
-
 
 // Accepts is the RangesEdge implementation of the Edger interface.
 func (e *RangesEdge) Accepts(s *ScannerSource) bool {
@@ -344,7 +311,6 @@ func (e *RangesEdge) Accepts(s *ScannerSource) bool {
 
 	return false
 }
-
 
 func (e *RangesEdge) String() (s string) {
 	if e.Invert {

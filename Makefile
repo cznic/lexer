@@ -8,12 +8,14 @@ TARG=github.com/cznic/lexer
 
 GOFILES=\
 	is.go\
-	lexer.go\
 	nfa.go\
 	ranges.go\
 	regex.go\
 	scanner.go\
 	source.go\
 	vm.go\
+	lexer.go\
+
+CLEANFILES += *~
 
 include $(GOROOT)/src/Make.pkg

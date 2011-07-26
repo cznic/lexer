@@ -9,29 +9,24 @@
 
 package lexer
 
-
 type stateSet struct {
 	count  uint
 	dense  []dense
 	sparse []uint
 }
 
-
 type dense struct {
 	id       uint
 	priority int
 }
 
-
 func newStateSet(n int) stateSet {
 	return stateSet{0, make([]dense, n), make([]uint, n)}
 }
 
-
 func (s *stateSet) clear() {
 	s.count = 0
 }
-
 
 func (s *stateSet) has(state *NfaState, priority *int) bool {
 	id := state.Index
@@ -44,7 +39,6 @@ func (s *stateSet) has(state *NfaState, priority *int) bool {
 
 	return false
 }
-
 
 func (s *stateSet) include(state *NfaState, priority int) bool {
 	id := state.Index
@@ -64,7 +58,6 @@ func (s *stateSet) include(state *NfaState, priority int) bool {
 	return false
 }
 
-
 func (s *stateSet) closure(src *ScannerSource, state *NfaState, priority int) {
 	if !s.include(state, priority) {
 		for _, edge := range state.NonConsuming {
@@ -79,18 +72,15 @@ func (s *stateSet) closure(src *ScannerSource, state *NfaState, priority int) {
 	}
 }
 
-
 type vm struct {
 	nfa  Nfa
 	x, y stateSet
 }
 
-
 func newVM(nfa Nfa) vm {
 	n := len(nfa)
 	return vm{nfa, newStateSet(n), newStateSet(n)}
 }
-
 
 func (vm *vm) start(src *ScannerSource, start, accept *NfaState) (rune, moves int, ok bool) {
 	nfa, x, y := vm.nfa, &vm.x, &vm.y

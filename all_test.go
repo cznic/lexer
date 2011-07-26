@@ -9,7 +9,6 @@
 
 package lexer
 
-
 import (
 	"bufio"
 	"bytes"
@@ -23,17 +22,14 @@ import (
 	"testing"
 )
 
-
 var (
 	devFlag = flag.Bool("dev", false, "enable dev tests/utils/helpers")
 	reFlag  = flag.String("re", "re", "regexp for some of the dev tests")
 )
 
-
 func init() {
 	flag.Parse()
 }
-
 
 func TestScan(t *testing.T) {
 	lexer, err := CompileLexer(
@@ -85,7 +81,6 @@ func TestScan(t *testing.T) {
 		t.Fatal(70, x, 0)
 	}
 }
-
 
 var lex = MustCompileLexer(
 	nil,
@@ -175,7 +170,6 @@ var lex = MustCompileLexer(
 		`/var/`:         int(token.VAR),
 	},
 
-
 	`
 identifier    = letter { letter | unicode_digit } .
 letter        = unicode_letter | "_" .
@@ -229,7 +223,6 @@ string_escaped_char      = "\\" ( "\"" | other_escaped_char ) .
 	"Go",
 )
 
-
 func BenchmarkNFA(b *testing.B) {
 	var v visitor
 	for i := 0; i < b.N; i++ {
@@ -240,10 +233,9 @@ func BenchmarkNFA(b *testing.B) {
 
 }
 
-
 func TestNFA(t *testing.T) {
 	t.Logf("NFA states: %d", len(lex.nfa))
-	fn := runtime.GOROOT() + "/src/pkg/exp/eval/expr.go"
+	fn := runtime.GOROOT() + "/src/pkg/fmt/scan.go"
 	f, err := ioutil.ReadFile(fn)
 	if err != nil {
 		t.Fatal(err)
@@ -270,7 +262,6 @@ func TestNFA(t *testing.T) {
 	t.Log(tok, "tokens in", fn)
 }
 
-
 type visitor struct {
 	s        *Scanner
 	count    int
@@ -278,11 +269,9 @@ type visitor struct {
 	size     int64
 }
 
-
 func (v *visitor) VisitDir(path string, f *os.FileInfo) bool {
 	return true
 }
-
 
 func (v *visitor) VisitFile(path string, f *os.FileInfo) {
 	ok, err := filepath.Match("*.go", filepath.Base(path))
@@ -317,7 +306,6 @@ func (v *visitor) VisitFile(path string, f *os.FileInfo) {
 	v.count++
 	v.size += f.Size
 }
-
 
 func TestDevParse(t *testing.T) {
 	if !*devFlag {

@@ -9,14 +9,12 @@
 
 package lexer
 
-
 import (
 	"fmt"
 	"go/token"
 	"io"
 	"unicode"
 )
-
 
 type Scanner struct {
 	stack      []int // start state sets
@@ -28,11 +26,9 @@ type Scanner struct {
 	token      []int
 }
 
-
 func newScanner(lx *Lexer, src *ScannerSource) *Scanner {
 	return &Scanner{lexer: lx, src: src, vm: newVM(lx.nfa)}
 }
-
 
 // Include includes a RuneReader having fname. Recursive including is not checked. 
 // Include discards the one rune lookahead data if there are any.
@@ -41,18 +37,15 @@ func (s *Scanner) Include(fname string, r io.RuneReader) {
 	s.src.Include(fname, r)
 }
 
-
 // Begin switches the Scanner's start state (start set).
 func (s *Scanner) Begin(state StartSetID) {
 	s.tos = int(state)
 }
 
-
 // Position returns the current Scanner position, i.e. after a Scan() it returns the position after the current token.
 func (s *Scanner) Position() token.Position {
 	return s.src.CurrentRune().Position
 }
-
 
 // PopState pops the top of the stack and switches to it via Begin().
 func (s *Scanner) PopState() {
@@ -64,14 +57,12 @@ func (s *Scanner) PopState() {
 	s.stack = s.stack[0:sp]
 }
 
-
 // PushState pushes the current start condition onto the top of the start condition stack
 // and switches to newState as though you had used Begin(newState).
 func (s *Scanner) PushState(newState StartSetID) {
 	s.stack = append(s.stack, s.tos)
 	s.Begin(newState)
 }
-
 
 /* 
 Scan scans the Scanner source, consumes runes as long as there is a chance to recognize a token
@@ -157,18 +148,15 @@ func (s *Scanner) Scan() (rune int, ok bool) {
 	return
 }
 
-
 // Token returns the runes consumed by last Scan. Repeated Scans for ignored tokens (id < 0) are discarded.
 func (s *Scanner) Token() []int {
 	return s.token
 }
 
-
 // TokenStart returns the starting position of the token returned by last Scan.
 func (s *Scanner) TokenStart() token.Position {
 	return s.tokenStart
 }
-
 
 // TopState returns the top of the stack without altering the stack's contents.
 func (s *Scanner) TopState() StartSetID {

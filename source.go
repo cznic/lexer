@@ -9,28 +9,23 @@
 
 package lexer
 
-
 import (
 	"go/token"
 	"io"
 	"os"
 )
 
-
 // EOFReader implements a RuneReader allways returning 0 (EOF) 
 type EOFReader int
-
 
 func (r EOFReader) ReadRune() (rune int, size int, err os.Error) {
 	return 0, 0, os.EOF
 }
 
-
 type source struct {
 	reader   io.RuneReader
 	position token.Position
 }
-
 
 func newSource(fname string, r io.RuneReader) (s source) {
 	s.reader = r
@@ -40,13 +35,11 @@ func newSource(fname string, r io.RuneReader) (s source) {
 	return
 }
 
-
 // Source provides a stack of rune streams with position information.
 type Source struct {
 	stack []source
 	tos   source
 }
-
 
 // NewSource returns a new Source from a RuneReader having fname.
 // The RuneReader can be nil. Then an EOFReader is supplied and
@@ -60,19 +53,16 @@ func NewSource(fname string, r io.RuneReader) *Source {
 	return s
 }
 
-
 // Include includes a RuneReader having fname. Recursive including is not checked.
 func (s *Source) Include(fname string, r io.RuneReader) {
 	s.stack = append(s.stack, s.tos)
 	s.tos = newSource(fname, r)
 }
 
-
 // Position return the position of the next Read.
 func (s *Source) Position() token.Position {
 	return s.tos.position
 }
-
 
 // Read returns the next Source ScannerRune.
 func (s *Source) Read() (r ScannerRune) {
@@ -103,7 +93,6 @@ func (s *Source) Read() (r ScannerRune) {
 	panic("unreachable")
 }
 
-
 // ScannerRune is a struct holding info about a rune and it's origin
 type ScannerRune struct {
 	Position token.Position // Starting position of Rune
@@ -111,7 +100,6 @@ type ScannerRune struct {
 	Size     int            // Rune size
 	Err      os.Error       // os.EOF or nil. Any other value invalidates all other fields of a ScannerRune.
 }
-
 
 // ScannerSource is a Source with one ScannerRune look behind and an on demand one ScannerRune lookahead.
 type ScannerSource struct {
@@ -121,7 +109,6 @@ type ScannerSource struct {
 	next    ScannerRune
 	runes   []int
 }
-
 
 // Accept checks if rune matches Current. If true then does Move.
 func (s *ScannerSource) Accept(rune int) bool {
@@ -133,7 +120,6 @@ func (s *ScannerSource) Accept(rune int) bool {
 	return false
 }
 
-
 // NewScannerSource returns a new ScannerSource from a RuneReader having fname.
 // The RuneReader can be nil. Then an EOFReader is supplied and
 // the real RuneReader(s) can be Included anytime afterwards.
@@ -144,7 +130,6 @@ func NewScannerSource(fname string, r io.RuneReader) *ScannerSource {
 	return s
 }
 
-
 // Collect returns all runes seen by the ScannerSource since last Collect or CollectString.
 // Either Collect or CollectString can be called but only one of them as both clears the collector.
 func (s *ScannerSource) Collect() (runes []int) {
@@ -152,25 +137,21 @@ func (s *ScannerSource) Collect() (runes []int) {
 	return
 }
 
-
 // CollectString returns all runes seen by the ScannerSource since last CollectString or Collect as a string.
 // Either Collect or CollectString can be called but only one of them as both clears the collector.
 func (s *ScannerSource) CollectString() string {
 	return string(s.Collect())
 }
 
-
 // CurrentRune returns the current ScannerSource rune. At EOF it's zero.
 func (s *ScannerSource) Current() int {
 	return s.current.Rune
 }
 
-
 // Current returns the current ScannerSource ScannerRune.
 func (s *ScannerSource) CurrentRune() ScannerRune {
 	return s.current
 }
-
 
 // Include includes a RuneReader having fname. Recursive including is not checked.
 // Include discards the one rune lookahead data if there are any.
@@ -182,18 +163,15 @@ func (s *ScannerSource) Include(fname string, r io.RuneReader) {
 	s.Move()
 }
 
-
 func (s *ScannerSource) invalidateNext() {
 	s.next.Position.Line = 0
 }
-
 
 func (s *ScannerSource) lookahead() {
 	if !s.next.Position.IsValid() {
 		s.read(&s.next)
 	}
 }
-
 
 // Move moves ScannerSource one rune ahead.
 func (s *ScannerSource) Move() {
@@ -210,13 +188,11 @@ func (s *ScannerSource) Move() {
 	}
 }
 
-
 // Next returns ScannerSource next (lookahead) ScannerRune. It's Rune is zero if next is EOF.
 func (s *ScannerSource) NextRune() ScannerRune {
 	s.lookahead()
 	return s.next
 }
-
 
 // NextRune returns ScannerSource next (lookahead) rune. It is zero if next is EOF
 func (s *ScannerSource) Next() int {
@@ -224,24 +200,20 @@ func (s *ScannerSource) Next() int {
 	return s.next.Rune
 }
 
-
 // Position returns the current ScannerSource position, i.e. after a Move() it returns the position after CurrentRune.
 func (s *ScannerSource) Position() token.Position {
 	return s.source.Position()
 }
-
 
 // Prev returns then previous (look behind) ScanerRune. Before first Move() it's Rune is zero and Position.IsValid == false
 func (s *ScannerSource) PrevRune() ScannerRune {
 	return s.prev
 }
 
-
 // PrevRune returns the previous (look behind) ScannerRune rune. Before first Move() it's zero.
 func (s *ScannerSource) Prev() int {
 	return s.prev.Rune
 }
-
 
 func (s *ScannerSource) read(dest *ScannerRune) {
 	*dest = s.source.Read()

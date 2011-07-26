@@ -13,11 +13,9 @@
 
 package lexer
 
-
 import (
 	"unicode"
 )
-
 
 // is16 uses binary search to test whether rune is in the specified slice of 16-bit ranges.
 func is16(ranges []unicode.Range16, rune uint16) bool {
@@ -40,7 +38,6 @@ func is16(ranges []unicode.Range16, rune uint16) bool {
 	return false
 }
 
-
 // is32 uses binary search to test whether rune is in the specified slice of 32-bit ranges.
 func is32(ranges []unicode.Range32, rune uint32) bool {
 	// binary search over ranges
@@ -61,7 +58,6 @@ func is32(ranges []unicode.Range32, rune uint32) bool {
 	}
 	return false
 }
-
 
 // unicodeIs tests whether rune is in the specified table of ranges.
 func unicodeIs(rangeTab *unicode.RangeTable, rune int) bool {

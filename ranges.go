@@ -9,21 +9,17 @@
 
 package lexer
 
-
 import (
 	"sort"
 	"unicode"
 )
 
-
 type rangeSlice []unicode.Range32
-
 
 // sort.Interface
 func (r rangeSlice) Len() int {
 	return len(r)
 }
-
 
 // sort.Interface
 func (pr *rangeSlice) Less(i, j int) bool {
@@ -31,13 +27,11 @@ func (pr *rangeSlice) Less(i, j int) bool {
 	return r[i].Lo < r[j].Lo
 }
 
-
 // sort.Interface
 func (pr *rangeSlice) Swap(i, j int) {
 	r := *pr
 	r[i], r[j] = r[j], r[i]
 }
-
 
 // Limited normalization of ranges produced by ParseRE. Doesn't handle stride != 1.
 func (pr *rangeSlice) normalize() {

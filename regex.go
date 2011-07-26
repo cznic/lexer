@@ -9,14 +9,12 @@
 
 package lexer
 
-
 import (
 	"fmt"
 	"os"
 	"strings"
 	"unicode"
 )
-
 
 func qs(s string) string {
 	q := fmt.Sprintf("%q", s)
@@ -44,7 +42,6 @@ func (n *Nfa) ParseRE(name, re string) (in, out *NfaState, err os.Error) {
 	return
 }
 
-
 func (n *Nfa) parseExpr(s *ScannerSource, in0, out0 *NfaState, nest int) (in, out *NfaState) {
 	in, out = in0, out0
 	for s.Current() != 0 {
@@ -71,7 +68,6 @@ func (n *Nfa) parseExpr(s *ScannerSource, in0, out0 *NfaState, nest int) (in, ou
 	panic(fmt.Errorf(`expected "alernative"`)) //TODO all parameterless fmt.Errof -> os.NewError
 }
 
-
 func (n *Nfa) parseAlt(s *ScannerSource, nest int) (in, out *NfaState) {
 	var a, b *NfaState
 	for s.Current() != 0 {
@@ -89,7 +85,6 @@ func (n *Nfa) parseAlt(s *ScannerSource, nest int) (in, out *NfaState) {
 
 	panic(fmt.Errorf(`expected "term"`))
 }
-
 
 func (n *Nfa) parseTerm(s *ScannerSource, in0 *NfaState, nest int) (in, out *NfaState) {
 	if in = in0; in == nil {
@@ -182,7 +177,6 @@ func (n *Nfa) parseTerm(s *ScannerSource, in0 *NfaState, nest int) (in, out *Nfa
 	return
 }
 
-
 func (s *ScannerSource) mustGetChar() int {
 	if c := s.Current(); c != 0 {
 		s.Move()
@@ -191,7 +185,6 @@ func (s *ScannerSource) mustGetChar() int {
 
 	panic(fmt.Errorf("unexpected end of regexp"))
 }
-
 
 func (s *ScannerSource) mustParseChar(more string) (rune int) {
 	allowZero := s.Current() == '\\'
@@ -202,7 +195,6 @@ func (s *ScannerSource) mustParseChar(more string) (rune int) {
 	s.Move()
 	return
 }
-
 
 func (s *ScannerSource) parseChar(more string) (rune int) {
 	if rune = s.Current(); rune != '\\' {
@@ -243,7 +235,6 @@ func (s *ScannerSource) parseChar(more string) (rune int) {
 	panic("unreachable")
 }
 
-
 func (s *ScannerSource) hex() (v int) {
 	switch v = s.Current(); {
 	case v >= '0' && v <= '9':
@@ -256,7 +247,6 @@ func (s *ScannerSource) hex() (v int) {
 
 	panic(os.NewError("expected hex digit"))
 }
-
 
 func (s *ScannerSource) expect(rune int) {
 	if !s.Accept(rune) {
