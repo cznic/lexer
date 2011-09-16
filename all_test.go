@@ -13,7 +13,6 @@ import (
 	"bufio"
 	"bytes"
 	"flag"
-	"fmt"
 	"go/token"
 	"io/ioutil"
 	"os"
@@ -227,7 +226,15 @@ func BenchmarkNFA(b *testing.B) {
 	var v visitor
 	for i := 0; i < b.N; i++ {
 		v = visitor{s: lex.Scanner("test-go-scanner", nil)}
-		filepath.Walk(runtime.GOROOT()+"/src", &v, nil)
+		filepath.Walk(runtime.GOROOT()+"/src", func(pth string, info *os.FileInfo, err os.Error) os.Error {
+			if err != nil {
+				panic(err)
+			}
+			if !info.IsDirectory() {
+				v.visitFile(pth, info)
+			}
+			return nil
+		})
 	}
 	b.SetBytes(int64(b.N) * v.size)
 
@@ -269,11 +276,7 @@ type visitor struct {
 	size     int64
 }
 
-func (v *visitor) VisitDir(path string, f *os.FileInfo) bool {
-	return true
-}
-
-func (v *visitor) VisitFile(path string, f *os.FileInfo) {
+func (v *visitor) visitFile(path string, f *os.FileInfo) {
 	ok, err := filepath.Match("*.go", filepath.Base(path))
 	if err != nil {
 		panic(err)
@@ -297,7 +300,7 @@ func (v *visitor) VisitFile(path string, f *os.FileInfo) {
 		}
 
 		if !ok {
-			panic(fmt.Errorf("Scan fail: %d=%q %s-%s = %q", x, string(x), v.s.TokenStart(), v.s.Position(), string(v.s.Token())))
+			return
 		}
 
 		v.tokCount++
