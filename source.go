@@ -93,7 +93,7 @@ func (s *Source) Read() (r ScannerRune) {
 	panic("unreachable")
 }
 
-// ScannerRune is a struct holding info about a rune and it's origin
+// ScannerRune is a struct holding info about a rune and its origin
 type ScannerRune struct {
 	Position token.Position // Starting position of Rune
 	Rune     int            // Rune value
@@ -205,12 +205,12 @@ func (s *ScannerSource) Position() token.Position {
 	return s.source.Position()
 }
 
-// Prev returns then previous (look behind) ScanerRune. Before first Move() it's Rune is zero and Position.IsValid == false
+// Prev returns then previous (look behind) ScanerRune. Before first Move() its Rune is zero and Position.IsValid == false
 func (s *ScannerSource) PrevRune() ScannerRune {
 	return s.prev
 }
 
-// PrevRune returns the previous (look behind) ScannerRune rune. Before first Move() it's zero.
+// PrevRune returns the previous (look behind) ScannerRune rune. Before first Move() its zero.
 func (s *ScannerSource) Prev() int {
 	return s.prev.Rune
 }

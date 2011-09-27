@@ -113,7 +113,7 @@ func (e *EpsilonEdge) Target() *NfaState {
 
 // NfaState desribes a single NFA state.
 type NfaState struct {
-	Index        uint    // Index of this state in it's owning NFA.
+	Index        uint    // Index of this state in its owning NFA.
 	Consuming    []Edger // The NFA state non consuming edge set.
 	NonConsuming []Edger // The NFA state consuming edge set.
 }
@@ -172,7 +172,7 @@ func (n *NfaState) retarget() (target *NfaState, ok bool) {
 type Nfa []*NfaState
 
 // AddState adds and existing NfaState to Nfa. One NfaState should not appear in more than one Nfa
-// because the NfaState Index property should always reflect it's position in the owner Nfa.
+// because the NfaState Index property should always reflect its position in the owner Nfa.
 func (n *Nfa) AddState(s *NfaState) *NfaState {
 	s.Index = uint(len(*n))
 	*n = append(*n, s)
