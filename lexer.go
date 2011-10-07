@@ -194,8 +194,8 @@ import (
 	"ebnf"
 	"fmt"
 	"go/scanner"
-	"go/token"
 	"io"
+	"log"
 	"os"
 	"regexp"
 	"strconv"
@@ -252,13 +252,11 @@ func CompileLexer(starts [][]int, tokdefs map[string]int, grammar, start string)
 	if prodnames != "" {
 		var g ebnf.Grammar
 		ebnfSrc := grammar + fmt.Sprintf("\n%s = %s .", start, prodnames)
-		fset := token.NewFileSet()
-		fset.AddFile(start, fset.Base(), len(ebnfSrc))
-		if g, err = ebnf.Parse(fset, start, []byte(ebnfSrc)); err != nil {
+		if g, err = ebnf.Parse(start, bytes.NewBufferString(ebnfSrc)); err != nil {
 			panic(err)
 		}
 
-		if err = ebnf.Verify(fset, g, start); err != nil {
+		if err = ebnf.Verify(g, start); err != nil {
 			panic(err)
 		}
 
@@ -309,6 +307,8 @@ func MustCompileLexer(starts [][]int, tokdefs map[string]int, grammar, start str
 	if lexer, err = CompileLexer(starts, tokdefs, grammar, start); err != nil {
 		if list, ok := err.(scanner.ErrorList); ok {
 			scanner.PrintError(os.Stderr, list)
+		} else {
+			log.Fatal(err)
 		}
 		panic(err)
 	}

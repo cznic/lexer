@@ -209,7 +209,7 @@ func (s *ScannerSource) parseChar(more string) (rune int) {
 		}
 
 		return
-	case '\\', '.', '+', '*', '?', '(', ')', '|', '[', ']', '^', '$':
+	case '\\', '.', '+', '*', '?', '(', ')', '|', '[', ']', '{', '}', '^', '$':
 		return
 	case 'a':
 		return '\a'
