@@ -10,8 +10,8 @@
 package lexer
 
 import (
+	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"unicode"
 )
@@ -23,14 +23,14 @@ func qs(s string) string {
 
 // ParseRE compiles a regular expression re into Nfa, returns the re component starting
 // and accepting states or an Error if any.
-func (n *Nfa) ParseRE(name, re string) (in, out *NfaState, err os.Error) {
+func (n *Nfa) ParseRE(name, re string) (in, out *NfaState, err error) {
 	s := NewScannerSource(name, strings.NewReader(re))
 
 	defer func() {
 		if e := recover(); e != nil {
 			in, out = nil, nil
 			pos := s.CurrentRune().Position
-			err = fmt.Errorf(`%s - "%s^%s" - %s`, pos, qs(re[:pos.Offset]), qs(re[pos.Offset:]), e.(os.Error))
+			err = fmt.Errorf(`%s - "%s^%s" - %s`, pos, qs(re[:pos.Offset]), qs(re[pos.Offset:]), e.(error))
 		}
 	}()
 
@@ -245,7 +245,7 @@ func (s *ScannerSource) hex() (v int) {
 		return v - 'A' + 10
 	}
 
-	panic(os.NewError("expected hex digit"))
+	panic(errors.New("expected hex digit"))
 }
 
 func (s *ScannerSource) expect(rune int) {

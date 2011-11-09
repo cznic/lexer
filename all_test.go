@@ -226,7 +226,7 @@ func BenchmarkNFA(b *testing.B) {
 	var v visitor
 	for i := 0; i < b.N; i++ {
 		v = visitor{s: lex.Scanner("test-go-scanner", nil)}
-		filepath.Walk(runtime.GOROOT()+"/src", func(pth string, info *os.FileInfo, err os.Error) os.Error {
+		filepath.Walk(runtime.GOROOT()+"/src", func(pth string, info *os.FileInfo, err error) error {
 			if err != nil {
 				panic(err)
 			}

@@ -213,13 +213,13 @@ type Lexer struct {
 type StartSetID int
 
 //TODO:full docs
-func CompileLexer(starts [][]int, tokdefs map[string]int, grammar, start string) (lexer *Lexer, err os.Error) {
+func CompileLexer(starts [][]int, tokdefs map[string]int, grammar, start string) (lexer *Lexer, err error) {
 	lexer = &Lexer{}
 
 	defer func() {
 		if e := recover(); e != nil {
 			lexer = nil
-			err = e.(os.Error)
+			err = e.(error)
 		}
 	}()
 
@@ -303,7 +303,7 @@ func CompileLexer(starts [][]int, tokdefs map[string]int, grammar, start string)
 // MustCompileLexer is like CompileLexer but panics if the definitions cannot be compiled.
 // It simplifies safe initialization of global variables holding compiled Lexers. 
 func MustCompileLexer(starts [][]int, tokdefs map[string]int, grammar, start string) (lexer *Lexer) {
-	var err os.Error
+	var err error
 	if lexer, err = CompileLexer(starts, tokdefs, grammar, start); err != nil {
 		if list, ok := err.(scanner.ErrorList); ok {
 			scanner.PrintError(os.Stderr, list)

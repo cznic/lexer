@@ -12,14 +12,13 @@ package lexer
 import (
 	"go/token"
 	"io"
-	"os"
 )
 
 // EOFReader implements a RuneReader allways returning 0 (EOF) 
 type EOFReader int
 
-func (r EOFReader) ReadRune() (rune int, size int, err os.Error) {
-	return 0, 0, os.EOF
+func (r EOFReader) ReadRune() (rune int, size int, err error) {
+	return 0, 0, io.EOF
 }
 
 type source struct {
@@ -69,7 +68,7 @@ func (s *Source) Read() (r ScannerRune) {
 	for {
 		r.Position = s.Position()
 		r.Rune, r.Size, r.Err = s.tos.reader.ReadRune()
-		if r.Err == nil || r.Err != os.EOF {
+		if r.Err == nil || r.Err != io.EOF {
 			p := &s.tos.position
 			p.Offset += r.Size
 			if r.Rune != '\n' {
@@ -98,7 +97,7 @@ type ScannerRune struct {
 	Position token.Position // Starting position of Rune
 	Rune     int            // Rune value
 	Size     int            // Rune size
-	Err      os.Error       // os.EOF or nil. Any other value invalidates all other fields of a ScannerRune.
+	Err      error          // os.EOF or nil. Any other value invalidates all other fields of a ScannerRune.
 }
 
 // ScannerSource is a Source with one ScannerRune look behind and an on demand one ScannerRune lookahead.
