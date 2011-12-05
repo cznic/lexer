@@ -226,11 +226,11 @@ func BenchmarkNFA(b *testing.B) {
 	var v visitor
 	for i := 0; i < b.N; i++ {
 		v = visitor{s: lex.Scanner("test-go-scanner", nil)}
-		filepath.Walk(runtime.GOROOT()+"/src", func(pth string, info *os.FileInfo, err error) error {
+		filepath.Walk(runtime.GOROOT()+"/src", func(pth string, info os.FileInfo, err error) error {
 			if err != nil {
 				panic(err)
 			}
-			if !info.IsDirectory() {
+			if !info.IsDir() {
 				v.visitFile(pth, info)
 			}
 			return nil
@@ -276,7 +276,7 @@ type visitor struct {
 	size     int64
 }
 
-func (v *visitor) visitFile(path string, f *os.FileInfo) {
+func (v *visitor) visitFile(path string, f os.FileInfo) {
 	ok, err := filepath.Match("*.go", filepath.Base(path))
 	if err != nil {
 		panic(err)
@@ -307,7 +307,7 @@ func (v *visitor) visitFile(path string, f *os.FileInfo) {
 	}
 
 	v.count++
-	v.size += f.Size
+	v.size += f.Size()
 }
 
 func TestDevParse(t *testing.T) {
