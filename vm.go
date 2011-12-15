@@ -82,11 +82,11 @@ func newVM(nfa Nfa) vm {
 	return vm{nfa, newStateSet(n), newStateSet(n)}
 }
 
-func (vm *vm) start(src *ScannerSource, start, accept *NfaState) (rune, moves int, ok bool) {
+func (vm *vm) start(src *ScannerSource, start, accept *NfaState) (arune rune, moves int, ok bool) {
 	nfa, x, y := vm.nfa, &vm.x, &vm.y
 	x.clear()
 	for x.closure(src, start, 0); ; x, y = y, x {
-		rune = src.Current()
+		arune = src.Current()
 		y.clear()
 		for i := uint(0); i < x.count; i++ {
 			d := x.dense[i]
@@ -101,7 +101,9 @@ func (vm *vm) start(src *ScannerSource, start, accept *NfaState) (rune, moves in
 			}
 		}
 		if y.count == 0 { // FSM halted
-			ok = x.has(accept, &rune)
+			i := int(arune)
+			ok = x.has(accept, &i)
+			arune = rune(i)
 			return
 		}
 

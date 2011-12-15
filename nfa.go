@@ -266,15 +266,15 @@ func (n *Nfa) ZeroOrOne(in, out *NfaState) (from, to *NfaState) {
 	return from, out.AddNonConsuming(&EpsilonEdge{0, n.NewState()}).Target()
 }
 
-// RuneEdge is a consuming egde which accepts a single rune.
+// RuneEdge is a consuming egde which accepts a single arune.
 type RuneEdge struct {
 	EpsilonEdge
-	Rune int
+	Rune rune
 }
 
-// NewRuneEdge returns a new RuneEdge pointing to target which accepts rune.
-func NewRuneEdge(target *NfaState, rune int) *RuneEdge {
-	return &RuneEdge{EpsilonEdge{0, target}, rune}
+// NewRuneEdge returns a new RuneEdge pointing to target which accepts arune.
+func NewRuneEdge(target *NfaState, arune rune) *RuneEdge {
+	return &RuneEdge{EpsilonEdge{0, target}, arune}
 }
 
 // Accepts is the RuneEdge implementation of the Edger interface.
@@ -286,11 +286,11 @@ func (e *RuneEdge) String() string {
 	return fmt.Sprintf("%q%s", string(e.Rune), e.EpsilonEdge.String())
 }
 
-// RangesEdge is a consuming egde which accepts rune ranges except \U+0000.
+// RangesEdge is a consuming egde which accepts arune ranges except \U+0000.
 type RangesEdge struct {
 	EpsilonEdge
 	Invert bool                // Accepts all but Ranges as in [^exp]
-	Ranges *unicode.RangeTable // Accepted rune set
+	Ranges *unicode.RangeTable // Accepted arune set
 }
 
 // NewRangesEdge returns a new RangesEdge pointing to target which accepts ranges.
@@ -300,13 +300,13 @@ func NewRangesEdge(target *NfaState, invert bool, ranges *unicode.RangeTable) *R
 
 // Accepts is the RangesEdge implementation of the Edger interface.
 func (e *RangesEdge) Accepts(s *ScannerSource) bool {
-	rune := s.Current()
-	if rune != 0 {
+	arune := s.Current()
+	if arune != 0 {
 		if e.Invert {
-			return !unicodeIs(e.Ranges, rune)
+			return !unicodeIs(e.Ranges, arune)
 		}
 
-		return unicodeIs(e.Ranges, rune)
+		return unicodeIs(e.Ranges, arune)
 	}
 
 	return false

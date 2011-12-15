@@ -15,7 +15,7 @@ Package lexer provides generating actionless scanners (lexeme recognizers) at ru
 Scanners are defined by regular expressions
 and/or lexical grammars, mapping between those definitions, token numeric identifiers and
 an optional set of starting id sets, providing simmilar functionality as switching start states in *nix LEX.
-The generated FSMs are Unicode rune based and all unicode.Categories and unicode.Scripts are supported by the
+The generated FSMs are Unicode arune based and all unicode.Categories and unicode.Scripts are supported by the
 regexp syntax using the \p{name} construct.
 
 Syntax supported by ParseRE (ATM a very basic subset of RE2, docs bellow are a mod of: http://code.google.com/p/re2/wiki/Syntax, original docs license unclear)
@@ -54,7 +54,7 @@ Escape sequences:
 	\t           horizontal tab (≡ \011)
 	\v           vertical tab character (≡ \013)
 	\M           M is one of metachars \.+*?()|[]^$
-	\xhh         rune \u00hh, h is a hex digit
+	\xhh         arune \u00hh, h is a hex digit
 
 Character class elements:
 	x            single Unicode character
@@ -328,21 +328,21 @@ func (lx *Lexer) String() (s string) {
 	return
 }
 
-func identFirst(rune int) bool {
-	return unicode.IsLetter(rune) || rune == '_'
+func identFirst(arune rune) bool {
+	return unicode.IsLetter(arune) || arune == '_'
 }
 
-func identNext(rune int) bool {
-	return identFirst(rune) || unicode.IsDigit(rune)
+func identNext(arune rune) bool {
+	return identFirst(arune) || unicode.IsDigit(arune)
 }
 
 func isIdent(s string) bool {
-	for i, rune := range s {
-		if i == 0 && !identFirst(rune) {
+	for i, arune := range s {
+		if i == 0 && !identFirst(arune) {
 			return false
 		}
 
-		if !identNext(rune) {
+		if !identNext(arune) {
 			return false
 		}
 	}

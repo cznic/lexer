@@ -90,16 +90,16 @@ func (n *Nfa) parseTerm(s *ScannerSource, in0 *NfaState, nest int) (in, out *Nfa
 	if in = in0; in == nil {
 		in = n.NewState()
 	}
-	switch rune := s.Current(); rune {
+	switch arune := s.Current(); arune {
 	default:
 		s.Move()
-		out = in.AddConsuming(NewRuneEdge(n.NewState(), rune)).Target()
+		out = in.AddConsuming(NewRuneEdge(n.NewState(), arune)).Target()
 	case '+', '*', '?':
-		panic(fmt.Errorf("unexpected metachar %q", string(rune)))
+		panic(fmt.Errorf("unexpected metachar %q", string(arune)))
 	case '\\':
-		switch rune = s.mustParseChar("ApPz"); rune {
+		switch arune = s.mustParseChar("ApPz"); arune {
 		default:
-			out = in.AddConsuming(NewRuneEdge(n.NewState(), rune)).Target()
+			out = in.AddConsuming(NewRuneEdge(n.NewState(), arune)).Target()
 		case 'A':
 			out = in.AddNonConsuming(NewAssertEdge(n.NewState(), TextStart)).Target()
 		case 'z':
@@ -116,7 +116,7 @@ func (n *Nfa) parseTerm(s *ScannerSource, in0 *NfaState, nest int) (in, out *Nfa
 					panic(fmt.Errorf("unknown Unicode category name %q", name))
 				}
 			}
-			out = in.AddConsuming(NewRangesEdge(n.NewState(), rune == 'P', ranges)).Target()
+			out = in.AddConsuming(NewRangesEdge(n.NewState(), arune == 'P', ranges)).Target()
 		}
 	case 0, '|':
 		return nil, nil
@@ -177,7 +177,7 @@ func (n *Nfa) parseTerm(s *ScannerSource, in0 *NfaState, nest int) (in, out *Nfa
 	return
 }
 
-func (s *ScannerSource) mustGetChar() int {
+func (s *ScannerSource) mustGetChar() rune {
 	if c := s.Current(); c != 0 {
 		s.Move()
 		return c
@@ -186,9 +186,9 @@ func (s *ScannerSource) mustGetChar() int {
 	panic(fmt.Errorf("unexpected end of regexp"))
 }
 
-func (s *ScannerSource) mustParseChar(more string) (rune int) {
+func (s *ScannerSource) mustParseChar(more string) (arune rune) {
 	allowZero := s.Current() == '\\'
-	if rune = s.parseChar(more); rune == 0 && !allowZero {
+	if arune = s.parseChar(more); arune == 0 && !allowZero {
 		panic(fmt.Errorf("unexpected regexp end"))
 	}
 
@@ -196,16 +196,16 @@ func (s *ScannerSource) mustParseChar(more string) (rune int) {
 	return
 }
 
-func (s *ScannerSource) parseChar(more string) (rune int) {
-	if rune = s.Current(); rune != '\\' {
+func (s *ScannerSource) parseChar(more string) (arune rune) {
+	if arune = s.Current(); arune != '\\' {
 		return
 	}
 
 	s.Move()
-	switch rune = s.Current(); rune {
+	switch arune = s.Current(); arune {
 	default:
-		if strings.IndexAny(string(rune), more) < 0 {
-			panic(fmt.Errorf(`unknown escape sequence "\%s"`, string(rune)))
+		if strings.IndexAny(string(arune), more) < 0 {
+			panic(fmt.Errorf(`unknown escape sequence "\%s"`, string(arune)))
 		}
 
 		return
@@ -227,15 +227,15 @@ func (s *ScannerSource) parseChar(more string) (rune int) {
 		return '\v'
 	case 'x':
 		s.Move()
-		rune = s.hex() << 4
+		arune = s.hex() << 4
 		s.Move()
-		return rune | s.hex()
+		return arune | s.hex()
 	}
 
 	panic("unreachable")
 }
 
-func (s *ScannerSource) hex() (v int) {
+func (s *ScannerSource) hex() (v rune) {
 	switch v = s.Current(); {
 	case v >= '0' && v <= '9':
 		return v - '0'
@@ -248,8 +248,8 @@ func (s *ScannerSource) hex() (v int) {
 	panic(errors.New("expected hex digit"))
 }
 
-func (s *ScannerSource) expect(rune int) {
-	if !s.Accept(rune) {
-		panic(fmt.Errorf("expected %q, got %q", string(rune), string(s.Current())))
+func (s *ScannerSource) expect(arune rune) {
+	if !s.Accept(arune) {
+		panic(fmt.Errorf("expected %q, got %q", string(arune), string(s.Current())))
 	}
 }

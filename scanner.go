@@ -23,7 +23,7 @@ type Scanner struct {
 	src        *ScannerSource
 	vm         vm
 	tokenStart token.Position
-	token      []int
+	token      []rune
 }
 
 func newScanner(lx *Lexer, src *ScannerSource) *Scanner {
@@ -31,7 +31,7 @@ func newScanner(lx *Lexer, src *ScannerSource) *Scanner {
 }
 
 // Include includes a RuneReader having fname. Recursive including is not checked. 
-// Include discards the one rune lookahead data if there are any.
+// Include discards the one arune lookahead data if there are any.
 // Lookahead data exists iff Next() has been called and Move() has not yet been called afterwards. 
 func (s *Scanner) Include(fname string, r io.RuneReader) {
 	s.src.Include(fname, r)
@@ -65,7 +65,7 @@ func (s *Scanner) PushState(newState StartSetID) {
 }
 
 /* 
-Scan scans the Scanner source, consumes runes as long as there is a chance to recognize a token
+Scan scans the Scanner source, consumes arunes as long as there is a chance to recognize a token
 (i.e. until the Scanner FSM stops).
 	If the scanner is starting a Scan at EOF:
 	    Return 0, false.
@@ -74,56 +74,56 @@ Scan scans the Scanner source, consumes runes as long as there is a chance to re
 	    If the token's numeric id is >= 0:
 	        Return id, true.
 	    If the id is < 0:
-	        If the Scan has consumed at least one rune:
-	            Scan restarts discarding any consumed runes.
-	        If the Scan has not consumed any rune:
-	            Scanner is stalled¹. Move on by one rune, return unicode.ReplacementChar, false.
+	        If the Scan has consumed at least one arune:
+	            Scan restarts discarding any consumed arunes.
+	        If the Scan has not consumed any arune:
+	            Scanner is stalled¹. Move on by one arune, return unicode.ReplacementChar, false.
 
 	If a valid token was not recognized:
-	    If the Scanner has not consumed any rune:
-	        Return the current rune, false.² Move on by one rune.
-	    If the Scanner has moved by exactly one rune:
-	        Return that rune, false.²
-	    If the Scanner has consumed more than one rune:
+	    If the Scanner has not consumed any arune:
+	        Return the current arune, false.² Move on by one arune.
+	    If the Scanner has moved by exactly one arune:
+	        Return that arune, false.²
+	    If the Scanner has consumed more than one arune:
 	        Return unicode.ReplacementChar, false.
 
-The actual runes consumed by the last Scan can be retrieved by Token.
+The actual arunes consumed by the last Scan can be retrieved by Token.
 
-If the assigned token ids do not overlap with the otherwise expected runes, i.e. their ids are e.g. in the Unicode private usage area,
+If the assigned token ids do not overlap with the otherwise expected arunes, i.e. their ids are e.g. in the Unicode private usage area,
 then it is possible, as any other unsuccessful scan will return either zero (EOF) or unicode.ReplacementChar, 
-to ignore the returned ok value and drive a parser only by the rune/token id value. This is presumably the easier way for e.g. goyacc.
+to ignore the returned ok value and drive a parser only by the arune/token id value. This is presumably the easier way for e.g. goyacc.
 
-¹The FSM has stopped in an accepting state without consuming any runes. Caused by using (re)* or (re)? for negative numeric id (i.e. ignored) tokens.
+¹The FSM has stopped in an accepting state without consuming any arunes. Caused by using (re)* or (re)? for negative numeric id (i.e. ignored) tokens.
 Better avoid that.
 
-²Intended for processing single rune tokens (e.g. a semicolon) without defining the regexp and token id for it.
+²Intended for processing single arune tokens (e.g. a semicolon) without defining the regexp and token id for it.
 Examples of such usage can be found in many .y files.
 */
-func (s *Scanner) Scan() (rune int, ok bool) {
+func (s *Scanner) Scan() (arune rune, ok bool) {
 	for {
 		var moves int
 		s.tokenStart = s.src.current.Position
-		if rune, moves, ok = s.vm.start(s.src, s.lexer.starts[s.tos], s.lexer.accept); ok {
-			if rune >= 0 { // rune == recognized token id
+		if arune, moves, ok = s.vm.start(s.src, s.lexer.starts[s.tos], s.lexer.accept); ok {
+			if arune >= 0 { // arune == recognized token id
 				break
 			}
 
-			// rune < 0, rune == recognized ignore token id
+			// arune < 0, arune == recognized ignore token id
 			if moves > 0 {
-				s.src.Collect() // discard runes
+				s.src.Collect() // discard arunes
 				continue
 			}
 
 			// moves == 0
 			s.src.Move() // Scanner stall
-			rune, ok = unicode.ReplacementChar, false
+			arune, ok = unicode.ReplacementChar, false
 			break
 		}
 
 		// ok == false
-		if rune == 0 { // EOF
+		if arune == 0 { // EOF
 			if moves != 0 {
-				rune = unicode.ReplacementChar
+				arune = unicode.ReplacementChar
 			}
 			break
 		}
@@ -138,8 +138,8 @@ func (s *Scanner) Scan() (rune int, ok bool) {
 			break
 		}
 
-		// moves > 1, don't confuse an easy parser by returning the last rune of an invalid token
-		rune = unicode.ReplacementChar
+		// moves > 1, don't confuse an easy parser by returning the last arune of an invalid token
+		arune = unicode.ReplacementChar
 		break
 
 	}
@@ -148,8 +148,8 @@ func (s *Scanner) Scan() (rune int, ok bool) {
 	return
 }
 
-// Token returns the runes consumed by last Scan. Repeated Scans for ignored tokens (id < 0) are discarded.
-func (s *Scanner) Token() []int {
+// Token returns the arunes consumed by last Scan. Repeated Scans for ignored tokens (id < 0) are discarded.
+func (s *Scanner) Token() []rune {
 	return s.token
 }
 
