@@ -6,7 +6,6 @@
 //		jnml, labs.nic.cz
 //		Miek Gieben, SIDN, miek@miek.nl
 
-
 package lexer
 
 type stateSet struct {

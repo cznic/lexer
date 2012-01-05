@@ -10,7 +10,6 @@
 
 // This is a modified version of the code originally found in src/pkg/unicode/letter.go
 
-
 package lexer
 
 import (
