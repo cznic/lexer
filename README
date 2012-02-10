@@ -5,4 +5,4 @@ Online godoc documentation for this package available at:
 http://gopkgdoc.appspot.com/pkg/github.com/cznic/lexer
 
 Installation:
-$ goinstall github.com/cznic/lexer
+$ go get github.com/cznic/lexer
