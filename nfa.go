@@ -113,8 +113,8 @@ func (e *EpsilonEdge) Target() *NfaState {
 // NfaState desribes a single NFA state.
 type NfaState struct {
 	Index        uint    // Index of this state in its owning NFA.
-	Consuming    []Edger // The NFA state consuming edge set.
-	NonConsuming []Edger // The NFA state non consuming edge set.
+	Consuming    []Edger // The NFA state non consuming edge set.
+	NonConsuming []Edger // The NFA state consuming edge set.
 }
 
 // AddConsuming adds an Edger to the state's consuming edge set and returns the Edger.
