@@ -191,7 +191,7 @@ package lexer
 
 import (
 	"bytes"
-	"exp/ebnf"
+	"github.com/cznic/ebnf"
 	"fmt"
 	"go/scanner"
 	"io"
