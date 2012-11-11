@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// blame: 
+// blame:
 //		jnml, labs.nic.cz
 //		Miek Gieben, SIDN, miek@miek.nl
 
@@ -47,7 +47,7 @@ Empty strings:
 
 Escape sequences:
 	\a           bell (≡ \007)
-	\b           backspace (≡ \010) 
+	\b           backspace (≡ \010)
 	\f           form feed (≡ \014)
 	\n           newline (≡ \012)
 	\r           carriage return (≡ \015)
@@ -191,8 +191,8 @@ package lexer
 
 import (
 	"bytes"
-	"github.com/cznic/ebnf"
 	"fmt"
+	"github.com/cznic/ebnf"
 	"go/scanner"
 	"io"
 	"log"
@@ -301,7 +301,7 @@ func CompileLexer(starts [][]int, tokdefs map[string]int, grammar, start string)
 }
 
 // MustCompileLexer is like CompileLexer but panics if the definitions cannot be compiled.
-// It simplifies safe initialization of global variables holding compiled Lexers. 
+// It simplifies safe initialization of global variables holding compiled Lexers.
 func MustCompileLexer(starts [][]int, tokdefs map[string]int, grammar, start string) (lexer *Lexer) {
 	var err error
 	if lexer, err = CompileLexer(starts, tokdefs, grammar, start); err != nil {

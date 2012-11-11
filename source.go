@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// blame: 
+// blame:
 //		jnml, labs.nic.cz
 //		Miek Gieben, SIDN, miek@miek.nl
 
@@ -13,7 +13,7 @@ import (
 	"io"
 )
 
-// EOFReader implements a RuneReader allways returning 0 (EOF) 
+// EOFReader implements a RuneReader allways returning 0 (EOF)
 type EOFReader int
 
 func (r EOFReader) ReadRune() (arune rune, size int, err error) {

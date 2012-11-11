@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// blame: 
+// blame:
 //		jnml, labs.nic.cz
 //		Miek Gieben, SIDN, miek@miek.nl
 
@@ -29,9 +29,9 @@ func newScanner(lx *Lexer, src *ScannerSource) *Scanner {
 	return &Scanner{lexer: lx, src: src, vm: newVM(lx.nfa)}
 }
 
-// Include includes a RuneReader having fname. Recursive including is not checked. 
+// Include includes a RuneReader having fname. Recursive including is not checked.
 // Include discards the one arune lookahead data if there are any.
-// Lookahead data exists iff Next() has been called and Move() has not yet been called afterwards. 
+// Lookahead data exists iff Next() has been called and Move() has not yet been called afterwards.
 func (s *Scanner) Include(fname string, r io.RuneReader) {
 	s.src.Include(fname, r)
 }
@@ -63,7 +63,7 @@ func (s *Scanner) PushState(newState StartSetID) {
 	s.Begin(newState)
 }
 
-/* 
+/*
 Scan scans the Scanner source, consumes arunes as long as there is a chance to recognize a token
 (i.e. until the Scanner FSM stops).
 	If the scanner is starting a Scan at EOF:
@@ -89,7 +89,7 @@ Scan scans the Scanner source, consumes arunes as long as there is a chance to r
 The actual arunes consumed by the last Scan can be retrieved by Token.
 
 If the assigned token ids do not overlap with the otherwise expected arunes, i.e. their ids are e.g. in the Unicode private usage area,
-then it is possible, as any other unsuccessful scan will return either zero (EOF) or unicode.ReplacementChar, 
+then it is possible, as any other unsuccessful scan will return either zero (EOF) or unicode.ReplacementChar,
 to ignore the returned ok value and drive a parser only by the arune/token id value. This is presumably the easier way for e.g. goyacc.
 
 ¹The FSM has stopped in an accepting state without consuming any arunes. Caused by using (re)* or (re)? for negative numeric id (i.e. ignored) tokens.
@@ -132,7 +132,7 @@ func (s *Scanner) Scan() (arune rune, ok bool) {
 			break
 		}
 
-		// moves > 0	
+		// moves > 0
 		if moves == 1 { // made progress
 			break
 		}
