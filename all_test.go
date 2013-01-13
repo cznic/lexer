@@ -322,3 +322,30 @@ func TestDevParse(t *testing.T) {
 
 	t.Log(nfa)
 }
+
+// https://github.com/cznic/golex/issues/1
+func TestBug1(t *testing.T) {
+	data := []string{
+		`[ \-\*]`,
+
+		"[-]",
+		"[-z]",
+		// "[a-]", // invalid
+		"[a-z]",
+
+		"[\\-]",
+		"[\\-z]",
+		"[a\\-]",
+		"[a\\-z]",
+	}
+
+	for i, s := range data {
+		var nfa Nfa
+		in, out, err := nfa.ParseRE("test", s)
+		if err != nil {
+			t.Fatal(i, s, err)
+		}
+
+		t.Logf("i: %d, s: %q, in: [%d], out: [%d]\nnfa: %s", i, s, in.Index, out.Index, nfa)
+	}
+}

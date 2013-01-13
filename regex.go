@@ -142,15 +142,22 @@ func (n *Nfa) parseTerm(s *ScannerSource, in0 *NfaState, nest int) (in, out *Nfa
 		ranges := &unicode.RangeTable{}
 		invert := s.Accept('^')
 		for {
-			a := s.mustParseChar("")
-			if s.Accept('-') {
-				b := s.mustParseChar("")
-				if b < a {
-					panic(fmt.Errorf(`invalid range bounds ordering in bracket expression "%s-%s"`, string(a), string(b)))
-				}
-				ranges.R32 = append(ranges.R32, unicode.Range32{uint32(a), uint32(b), 1})
-			} else {
+			a := s.mustParseChar("-")
+			switch s.Current() {
+			case '\\':
 				ranges.R32 = append(ranges.R32, unicode.Range32{uint32(a), uint32(a), 1})
+				a := s.mustParseChar("-")
+				ranges.R32 = append(ranges.R32, unicode.Range32{uint32(a), uint32(a), 1})
+			default:
+				if s.Accept('-') {
+					b := s.mustParseChar("")
+					if b < a {
+						panic(fmt.Errorf(`missing or invalid range bounds ordering in bracket expression "%s-%s"`, string(a), string(b)))
+					}
+					ranges.R32 = append(ranges.R32, unicode.Range32{uint32(a), uint32(b), 1})
+				} else {
+					ranges.R32 = append(ranges.R32, unicode.Range32{uint32(a), uint32(a), 1})
+				}
 			}
 			if s.Accept(']') {
 				break
@@ -204,7 +211,7 @@ func (s *ScannerSource) parseChar(more string) (arune rune) {
 	switch arune = s.Current(); arune {
 	default:
 		if strings.IndexAny(string(arune), more) < 0 {
-			panic(fmt.Errorf(`unknown escape sequence "\%s"`, string(arune)))
+			panic(fmt.Errorf(`unknown escape sequence "\%s (more: %q)"`, string(arune), more))
 		}
 
 		return
