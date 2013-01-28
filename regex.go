@@ -141,6 +141,7 @@ func (n *Nfa) parseTerm(s *ScannerSource, in0 *NfaState, nest int) (in, out *Nfa
 		s.Move()
 		ranges := &unicode.RangeTable{}
 		invert := s.Accept('^')
+	loop:
 		for {
 			a := s.mustParseChar("-")
 			switch s.Current() {
@@ -150,6 +151,14 @@ func (n *Nfa) parseTerm(s *ScannerSource, in0 *NfaState, nest int) (in, out *Nfa
 				ranges.R32 = append(ranges.R32, unicode.Range32{uint32(a), uint32(a), 1})
 			default:
 				if s.Accept('-') {
+					// Allow `[+-]`
+					if s.Current() == ']' {
+						s.Move()
+						ranges.R32 = append(ranges.R32, unicode.Range32{uint32(a), uint32(a), 1})
+						ranges.R32 = append(ranges.R32, unicode.Range32{'-', '-', 1})
+						break loop
+					}
+
 					b := s.mustParseChar("")
 					if b < a {
 						panic(fmt.Errorf(`missing or invalid range bounds ordering in bracket expression "%s-%s"`, string(a), string(b)))

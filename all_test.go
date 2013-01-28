@@ -349,3 +349,27 @@ func TestBug1(t *testing.T) {
 		t.Logf("i: %d, s: %q, in: [%d], out: [%d]\nnfa: %s", i, s, in.Index, out.Index, nfa)
 	}
 }
+
+func TestBug2(t *testing.T) {
+	data := []string{
+		`[+-]`,
+		`[+\-]`,
+		`[\+-]`,
+		`[\+\-]`,
+
+		`[+-z]`,
+		`[+\-z]`,
+		`[\+-z]`,
+		`[\+\-z]`,
+	}
+
+	for i, s := range data {
+		var nfa Nfa
+		in, out, err := nfa.ParseRE("test", s)
+		if err != nil {
+			t.Fatal(i, s, err)
+		}
+
+		t.Logf("i: %d, s: %q, in: [%d], out: [%d]\nnfa: %s", i, s, in.Index, out.Index, nfa)
+	}
+}
