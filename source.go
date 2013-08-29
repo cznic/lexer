@@ -11,6 +11,8 @@ package lexer
 import (
 	"go/token"
 	"io"
+
+	"github.com/cznic/fileutil"
 )
 
 // EOFReader implements a RuneReader allways returning 0 (EOF)
@@ -67,7 +69,7 @@ func (s *Source) Read() (r ScannerRune) {
 	for {
 		r.Position = s.Position()
 		r.Rune, r.Size, r.Err = s.tos.reader.ReadRune()
-		if r.Err == nil || r.Err != io.EOF {
+		if r.Err == nil || !fileutil.IsEOF(r.Err) {
 			p := &s.tos.position
 			p.Offset += r.Size
 			if r.Rune != '\n' {
