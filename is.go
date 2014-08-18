@@ -1,14 +1,8 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE-GO file.
-
-// Copyright (c) 2011 CZ.NIC z.s.p.o. All rights reserved.
+// Copyright (c) 2014 The lexer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// blame: jnml, labs.nic.cz
-
-// This is a modified version of the code originally found in src/pkg/unicode/letter.go
+// This is a modified version of the code originally found in $GOROOT/src/pkg/unicode/letter.go
 
 package lexer
 

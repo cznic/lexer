@@ -1,10 +1,6 @@
-// Copyright (c) 2011 CZ.NIC z.s.p.o. All rights reserved.
+// Copyright (c) 2014 The lexer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
-
-// blame:
-//		jnml, labs.nic.cz
-//		Miek Gieben, SIDN, miek@miek.nl
 
 //TODO(jnml) complete package docs
 
@@ -192,7 +188,6 @@ package lexer
 import (
 	"bytes"
 	"fmt"
-	"github.com/cznic/ebnf"
 	"go/scanner"
 	"io"
 	"log"
@@ -200,6 +195,8 @@ import (
 	"regexp"
 	"strconv"
 	"unicode"
+
+	"code.google.com/p/go.exp/ebnf"
 )
 
 type Lexer struct {

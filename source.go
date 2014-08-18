@@ -1,10 +1,6 @@
-// Copyright (c) 2011 CZ.NIC z.s.p.o. All rights reserved.
+// Copyright (c) 2014 The lexer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
-
-// blame:
-//		jnml, labs.nic.cz
-//		Miek Gieben, SIDN, miek@miek.nl
 
 package lexer
 
@@ -90,7 +86,6 @@ func (s *Source) Read() (r ScannerRune) {
 			return
 		}
 	}
-	panic("unreachable")
 }
 
 // ScannerRune is a struct holding info about a arune and its origin
@@ -183,9 +178,9 @@ func (s *ScannerSource) Move() {
 		s.current = s.next
 		s.invalidateNext()
 		return
-	} else {
-		s.read(&s.current)
 	}
+
+	s.read(&s.current)
 }
 
 // Next returns ScannerSource next (lookahead) ScannerRune. It's Rune is zero if next is EOF.
