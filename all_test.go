@@ -237,7 +237,7 @@ func BenchmarkNFA(b *testing.B) {
 
 func TestNFA(t *testing.T) {
 	t.Logf("NFA states: %d", len(lex.nfa))
-	fn := runtime.GOROOT() + "/src/pkg/fmt/scan.go"
+	fn := filepath.Join(runtime.GOROOT(), "src", stdlib, "fmt", "scan.go")
 	f, err := ioutil.ReadFile(fn)
 	if err != nil {
 		t.Fatal(err)
