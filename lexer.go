@@ -196,7 +196,7 @@ import (
 	"strconv"
 	"unicode"
 
-	"code.google.com/p/go.exp/ebnf"
+	"golang.org/x/exp/ebnf"
 )
 
 type Lexer struct {
